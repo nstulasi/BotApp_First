@@ -1,11 +1,15 @@
-﻿using System.Net;
+﻿using System;
+using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using System.Web.Http;
-using Microsoft.Bot.Builder.Dialogs;
+using System.Web.Http.Description;
 using Microsoft.Bot.Connector;
+using BotApp.Models;
+using Newtonsoft.Json;
 
-namespace BotApp
+namespace Bot_Application1
 {
     [BotAuthentication]
     public class MessagesController : ApiController
@@ -18,7 +22,16 @@ namespace BotApp
         {
             if (activity.Type == ActivityTypes.Message)
             {
-                await Conversation.SendAsync(activity, () => new Dialogs.RootDialog());
+                ConnectorClient connector =
+                    new ConnectorClient(new Uri(activity.ServiceUrl));
+                //Initiate the Rock,Paper, Scissors game
+                var game = new Game();
+                string message = game.Play(activity.Text);
+
+                Activity reply = activity.CreateReply(message);
+
+                await connector.Conversations.ReplyToActivityAsync(reply);
+
             }
             else
             {
@@ -37,9 +50,10 @@ namespace BotApp
             }
             else if (message.Type == ActivityTypes.ConversationUpdate)
             {
-                // Handle conversation state changes, like members being added and removed
-                // Use Activity.MembersAdded and Activity.MembersRemoved and Activity.Action for info
-                // Not available in all channels
+                // Handle conversation state changes, like members
+                // being added and removed Use Activity.MembersAdded
+                // and Activity.MembersRemoved and Activity.Action
+                // for info Not available in all channels
             }
             else if (message.Type == ActivityTypes.ContactRelationUpdate)
             {
@@ -53,7 +67,6 @@ namespace BotApp
             else if (message.Type == ActivityTypes.Ping)
             {
             }
-
             return null;
         }
     }
